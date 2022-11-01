@@ -20,6 +20,7 @@ pub(crate) enum BackendVarError {
     PortConversionError(&'static str, String, #[source] ParseIntError),
 }
 
+#[derive(Clone)]
 pub(crate) struct BackendVars {
     pub ldaps_server_ip: String,
     pub ldaps_server_port: u16,

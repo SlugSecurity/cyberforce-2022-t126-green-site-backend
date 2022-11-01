@@ -16,3 +16,4 @@ actix-web = { version = "4", features = ["rustls"] }
 # use suppaftp for FTP/S
 # use sqlx crate for MySQL over TLS (if possible)
 # use ldap3 crate for LDAP/S
+# login token after LDAP?

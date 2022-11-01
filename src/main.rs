@@ -12,7 +12,7 @@ use env_vars::BackendVars;
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::Item::*;
 
-mod endpoints;
+mod api;
 mod env_vars;
 
 // check out sending large post request on invalid endpoint: see https://github.com/actix/actix-web/issues/2906
@@ -73,10 +73,11 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let rustls_config = get_cert(&backend_vars)?;
     let port = backend_vars.web_server_port;
 
-    HttpServer::new(|| {
+    HttpServer::new(move || {
         App::new()
             .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
-            .service(web::scope("/api").configure(endpoints::endpoint_config))
+            .app_data(backend_vars.clone())
+            .service(web::scope("/api").configure(api::endpoint_config))
     })
     .bind_rustls(format!("0.0.0.0:{port}"), rustls_config)?
     .run()
