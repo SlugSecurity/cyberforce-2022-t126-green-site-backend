@@ -1,0 +1,18 @@
+[package]
+name = "green-site-backend"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+thiserror = "1"
+rustls-pemfile = "1"
+rustls = "0.20"
+actix-web = { version = "4", features = ["rustls"] }
+
+#TODO: 
+# use lettre for SMTP/S
+# use suppaftp for FTP/S
+# use sqlx crate for MySQL over TLS (if possible)
+# use ldap3 crate for LDAP/S
