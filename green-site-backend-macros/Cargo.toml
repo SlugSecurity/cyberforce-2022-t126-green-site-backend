@@ -1,0 +1,10 @@
+[package]
+name = "green-site-backend-macros"
+version = "0.1.0"
+authors = ["DELIBURD"]
+edition = "2021"
+license = "MIT"
+
+[dependencies]
+green-site-backend-macros-impl = { version = "0.1", path = "green-site-backend-macros-impl" }
+green-site-backend-macros-internal = { version = "0.1", path = "green-site-backend-macros-internal" }

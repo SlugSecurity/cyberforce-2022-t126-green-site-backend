@@ -484,6 +484,7 @@ name = "green-site-backend"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "green-site-backend-macros",
  "rustls",
  "rustls-pemfile",
  "thiserror",
@@ -493,9 +494,23 @@ dependencies = [
 name = "green-site-backend-macros"
 version = "0.1.0"
 dependencies = [
+ "green-site-backend-macros-impl",
+ "green-site-backend-macros-internal",
+]
+
+[[package]]
+name = "green-site-backend-macros-impl"
+version = "0.1.0"
+dependencies = [
+ "green-site-backend-macros-internal",
+ "proc-macro2",
  "quote",
  "syn",
 ]
+
+[[package]]
+name = "green-site-backend-macros-internal"
+version = "0.1.0"
 
 [[package]]
 name = "h2"
