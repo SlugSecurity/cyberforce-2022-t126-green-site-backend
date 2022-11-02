@@ -10,6 +10,7 @@ thiserror = "1"
 rustls-pemfile = "1"
 rustls = "0.20"
 actix-web = { version = "4", features = ["rustls"] }
+green-site-backend-macros = { version = "0.1", path = "../green-site-backend-macros" }
 
 #TODO: 
 # use lettre for SMTP/S
