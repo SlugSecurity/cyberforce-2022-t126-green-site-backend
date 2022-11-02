@@ -38,11 +38,13 @@ Each endpoint's rate limits will be documented. The rate limits shouldn't be hit
 - [ ] Ensure custom rate limit for login submission is enforced.
 - [ ] Ensure default rate limit is enforced for all other applicable endpoints.
 - [ ] Ensure TLS is being used for SMTP and only allows secure ciphersuites.
+- [ ] Ensure TLS is being used for IMAP and only allows secure ciphersuites.
 - [ ] Ensure TLS is being used for LDAP and only allows secure ciphersuites.
 - [ ] Ensure TLS is being used for FTP and only allows secure ciphersuites.
 - [ ] Ensure TLS is being used for MySQL if possible and only allows secure ciphersuites?
 - [ ] Ensure TLS is being used for frontend communication with self-signed cert if possible and only allows secure ciphersuites?
 - [ ] Ensure garbage inputs on SMTP connection doesn't crash/hang.
+- [ ] Ensure garbage inputs on IMAP connection doesn't crash/hang.
 - [ ] Ensure garbage inputs on LDAP connection doesn't crash/hang.
 - [ ] Ensure garbage inputs on FTP connection doesn't crash/hang.
 - [ ] Ensure garbage inputs on MySQL connection doesn't crash/hang.
