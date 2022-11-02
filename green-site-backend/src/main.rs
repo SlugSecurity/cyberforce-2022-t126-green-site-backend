@@ -1,19 +1,17 @@
-use std::{
-    error::Error,
-    fs::File,
-    io::{self, BufReader},
-};
+use std::{error::Error, fs::File, io::BufReader};
 
 use actix_web::{
     middleware::{self, TrailingSlash},
     web, App, HttpServer,
 };
 use env_vars::BackendVars;
+use error::ServerConfigError;
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::Item::*;
 
 mod api;
 mod env_vars;
+mod error;
 
 // check out sending large post request on invalid endpoint: see https://github.com/actix/actix-web/issues/2906
 // check if streamed responses cause other requests to fail: https://github.com/actix/actix-web/issues/2774
@@ -21,18 +19,6 @@ mod env_vars;
 // make sure to enforce lower or higher payload limits if necessary (there's one by default)
 
 // TODO: add logging to monitor requests
-
-#[derive(Debug, thiserror::Error)]
-enum ServerConfigError {
-    #[error("Error while reading PEM file: '{0}'")]
-    ReadPemIoError(String, #[source] io::Error),
-
-    #[error("Error while setting certificate and private key. Check that they are correct.")]
-    SetCertificateError(#[from] rustls::Error),
-
-    #[error("Unrecognized or no private key in {0}")]
-    UnrecognizedPrivateKey(String),
-}
 
 fn get_cert(vars: &BackendVars) -> Result<ServerConfig, ServerConfigError> {
     use ServerConfigError::*;

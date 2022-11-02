@@ -490,6 +490,14 @@ dependencies = [
 ]
 
 [[package]]
+name = "green-site-backend-macros"
+version = "0.1.0"
+dependencies = [
+ "quote",
+ "syn",
+]
+
+[[package]]
 name = "h2"
 version = "0.3.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"

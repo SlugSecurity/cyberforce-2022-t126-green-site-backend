@@ -1,7 +1,7 @@
 use actix_web::{
     get, post,
     web::{Path, ServiceConfig},
-    HttpResponse, Responder,
+    HttpRequest, HttpResponse, Responder,
 };
 
 #[get("")]
@@ -10,8 +10,10 @@ async fn get_files() -> impl Responder {
 }
 
 #[post("")]
-async fn upload_file(req_body: String) -> impl Responder {
-    HttpResponse::Ok().body(req_body)
+async fn upload_file(req: HttpRequest) -> impl Responder {
+    // read content type, only accept a plain binary stream (no compression), maybe use middleware for this?
+
+    HttpResponse::Ok().body("")
 }
 
 #[get("/{file_id}")]
