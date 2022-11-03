@@ -97,6 +97,7 @@ Each endpoint's rate limits will be documented. The rate limits shouldn't be hit
 - [~] Inapplicable
 - [ ] Incomplete
 -----------------------------
+- [ ] Working directory of web server application is only accessible by web server user and root.
 - [ ] Ensure file upload names are sanitized.
 - [ ] Ensure file upload byte limit is enforced.
 - [ ] Ensure size limit for form submission is enforced.
