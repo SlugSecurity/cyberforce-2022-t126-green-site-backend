@@ -35,6 +35,8 @@ Authentication is token-based that's returned when logging in. Privileged endpoi
 
 All endpoints have rate limits as specified in the environment variables, which will give response code 429 if it is hit. Any payloads above DATA_SUBMISSION_LIMIT will get response code 413. If a provided endpoint's service is down, response code 503 will be given.
 
+Any 40x and 50x response codes returned will also return an object containing one ``error`` field which is a string with the error message.
+
 - /api/login - POST request endpoint. The request body should be a ``UserLogin`` object. Responds with an ``Authentication`` object.
   - Response code 400 if UserLogin is malformed or character limits are bad.
   - Response code 401 if credentials are invalid.

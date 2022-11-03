@@ -1,3 +1,4 @@
+use serde::Serialize;
 use std::{error::Error, fmt::Display, io};
 use ServerConfigError::*;
 
@@ -32,4 +33,9 @@ impl Error for ServerConfigError {
             UnrecognizedPrivateKey(_) => None,
         }
     }
+}
+
+#[derive(Serialize)]
+pub(crate) struct ErrorResponse {
+    error: String,
 }
