@@ -14,6 +14,7 @@ use rustls_pemfile::Item::*;
 mod api;
 mod env_vars;
 mod error;
+mod token;
 
 fn get_cert(vars: &BackendVars) -> Result<ServerConfig, ServerConfigError> {
     use ServerConfigError::*;
