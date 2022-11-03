@@ -1,11 +1,13 @@
 use std::{error::Error, fs::File, io::BufReader};
 
 use actix_web::{
-    middleware::{self, TrailingSlash},
+    middleware::{self, Logger, TrailingSlash},
     web, App, HttpServer,
 };
+use env_logger::Builder;
 use env_vars::BackendVars;
 use error::ServerConfigError;
+use log::LevelFilter;
 use rustls::{Certificate, PrivateKey, ServerConfig};
 use rustls_pemfile::Item::*;
 
@@ -52,8 +54,14 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let rustls_config = get_cert(&backend_vars)?;
     let port = backend_vars.web_server_port;
 
+    Builder::new()
+        .filter_level(LevelFilter::Warn)
+        .filter_module("actix_web::middleware::logger", LevelFilter::Info)
+        .init();
+
     HttpServer::new(move || {
         App::new()
+            .wrap(Logger::default())
             .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
             .app_data(backend_vars.clone())
             .service(web::scope("/api").configure(api::endpoint_config))
