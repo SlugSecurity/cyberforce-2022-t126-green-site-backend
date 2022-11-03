@@ -1,11 +1,11 @@
 use actix_web::{get, post, web::ServiceConfig, HttpResponse, Responder};
 
-#[get("/emails")]
+#[get("")]
 async fn get_emails() -> impl Responder {
     HttpResponse::Ok().body("")
 }
 
-#[post("/emails")]
+#[post("")]
 async fn upload_emails() -> impl Responder {
     HttpResponse::Ok().body("")
 }
