@@ -13,13 +13,6 @@ mod api;
 mod env_vars;
 mod error;
 
-// check out sending large post request on invalid endpoint: see https://github.com/actix/actix-web/issues/2906
-// check if streamed responses cause other requests to fail: https://github.com/actix/actix-web/issues/2774
-
-// make sure to enforce lower or higher payload limits if necessary (there's one by default)
-
-// TODO: add logging to monitor requests
-
 fn get_cert(vars: &BackendVars) -> Result<ServerConfig, ServerConfigError> {
     use ServerConfigError::*;
 
