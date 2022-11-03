@@ -36,6 +36,4 @@ impl Error for ServerConfigError {
 }
 
 #[derive(Serialize)]
-pub(crate) struct ErrorResponse {
-    error: String,
-}
+pub(crate) struct ErrorResponse(#[serde(rename(serialize = "error"))] pub String);
