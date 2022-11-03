@@ -38,7 +38,7 @@ All endpoints have rate limits as specified in the environment variables, which 
 Any 40x and 50x response codes returned will also return an object containing one ``error`` field which is a string with the error message.
 
 - /api/login - POST request endpoint. The request body should be a ``UserLogin`` object. Responds with an ``Authentication`` object.
-  - Response code 400 if UserLogin is malformed or character limits are bad.
+  - Response code 400 if UserLogin is malformed, character limits are bad, or username isn't all lowercase ASCII characters.
   - Response code 401 if credentials are invalid.
 - /api/solar - GET request endpoint to retrieve solar panel info. Responds with a ``SolarPanelInfo`` object.
 - /api/files - Privileged GET request endpoint to retrieve all file metadata from the FTP server.
@@ -56,7 +56,7 @@ Any 40x and 50x response codes returned will also return an object containing on
 ## Object documentation
 ```
 UserLogin {
-    username: string (1 char min, 72 char limit),
+    username: string (1 char min, 72 char limit, all lowercase characters),
     password: string (1 char min, 72 char limit)
 }
 ```
