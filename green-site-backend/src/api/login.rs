@@ -4,12 +4,13 @@ use actix_web::{
     HttpRequest, HttpResponse,
 };
 use ldap3::{drive, LdapConnAsync, LdapError, LdapResult};
-use log::{error, info, warn};
+use log::{error, warn};
 use serde::{Deserialize, Serialize};
 
 use crate::{
     env_vars::BackendVars,
     error::{ErrorResponse, INTERNAL_ERROR, NO_ENV_VAR_APP_DATA},
+    token::{generate_token, Token},
 };
 
 const MIN_USERNAME_LEN: usize = 1;
@@ -27,7 +28,7 @@ struct UserLogin {
 #[derive(Serialize)]
 struct Authentication {
     is_admin: bool,
-    token: u128,
+    token: Token,
 }
 
 const BAD_CRED_CODE: u32 = 49; // Invalid credential result code for LDAP. See https://www.rfc-editor.org/rfc/rfc4511#appendix-A.1
@@ -49,12 +50,6 @@ async fn check_credentials(user_login: &UserLogin, vars: &BackendVars) -> Result
         .success()?; // Propogates the ldapresult if it wasnt successful
 
     Ok(vars.admin_account_username == user_name) // Return if user is admin
-}
-
-/// Generates token and puts an SHA-256 hash of it at ``username.key``in the
-/// working directory where the username is the provided parameter.
-fn generate_token(username: &str) -> u128 {
-    todo!()
 }
 
 #[post("")]
