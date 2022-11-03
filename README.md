@@ -20,12 +20,13 @@ Contains all of our endpoints for our green team website, which will be document
 - DATA_HISTORIAN_USER - The username to log into the Data Historian database
 - DATA_HISTORIAN_PASS - The password to log into the Data Historian database
 - WEB_SERVER_PORT - Port of web server backend
-- SSL_CERTIFICATE_PEM_PATH - Path of SSL certificate PEM
-- SSL_PRIVATE_KEY_PEM_PATH - Path of private key PEM
 - DATA_SUBMISSION_LIMIT - The limit in bytes of the size of any kind of data submissions (file uploads along with login and contact form submissions)
 - DATA_SUBMISSION_RATE_LIMIT - The number of requests allowed per second for login and contact form submissions and file uploads.
 - DEFAULT_RATE_LIMIT - The number of requests allowed per second for all other applicable endpoints that don't have a custom rate limit.
-- ADMIN_USERNAME - The username of the admin.
+- ADMIN_ACCOUNT_USERNAME - The username of the admin.
+- SSL_CERTIFICATE_PEM_PATH - Path of SSL certificate PEM
+- SSL_PRIVATE_KEY_PEM_PATH - Path of private key PEM
+- ROOT_CERTIFICATE_PATH - Path of root certificate
 
 ## Endpoint Documentation (See next section down for object documentation.)
 Any JSON data sent via a POST request should have a content type of 'application/json' unless it's a file upload in which case 'multipart/form-data' should be used. 
