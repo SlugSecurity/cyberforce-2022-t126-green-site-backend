@@ -11,6 +11,10 @@ rustls-pemfile = "1"
 rustls = "0.20"
 actix-web = { version = "4", features = ["rustls"] }
 green-site-backend-macros = { version = "0.1", path = "../green-site-backend-macros" }
+serde = { version = "1", features = ["derive"] }
+mime = "0.3"
+ldap3 = "0.10"
+
 
 #TODO: 
 # use lettre for SMTP/S
