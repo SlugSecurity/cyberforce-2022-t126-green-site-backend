@@ -1,7 +1,5 @@
 # green-site-backend
 
-
-
 ## Green Team Website Backend
 Contains all of our endpoints for our green team website, which will be documented below.
 
@@ -30,11 +28,56 @@ Contains all of our endpoints for our green team website, which will be document
 - DEFAULT_RATE_LIMIT - The number of requests allowed per second for all other applicable endpoints that don't have a custom rate limit.
 
 ## Endpoint Documentation (See next section down for object documentation.)
-- /api/login - A POST request to this endpoint with content MIME type "application/json" and a UserLogin object. Responds with a LoginResponse.
-- 
+Any JSON data sent via a POST request should have a content type of 'application/json' unless it's a file upload
+in which case 'multipart/form-data' should be used. Authentication is token-based that's returned when logging in.
+Privileged endpoints as specified below can only be accessed by admin accounts.
+
+- /api/login - POST request endpoint. The request body should be a ``UserLogin`` object. Responds with an ``Authentication`` object.
+- /api/solar - GET request endpoint to retrieve solar panel info. Responds with a ``SolarPanelInfo`` object.
+- /api/files - Privileged GET request endpoint to retrieve all file metadata from the FTP server. This should be a ``multipart/form-data`` where the content disposition header has ``form-data`` as the first directive followed by the ``filename`` directive that is between 1-72 characters.
+- /api/files - POST request endpoint to upload a file to the FTP server. The request body should be a ``File`` object.
+- /api/files/**ID** - Privileged GET request endpoint to download a file from the FTP server by ID. Returns the file data in the response body with the content type set to 'application/octet-stream' and content disposition set to ``attachment; filename="<FILE_NAME>"``.
+- /api/emails - Privileged GET request endpoint to get all stored emails. Returns an ``Email`` object on success.
+- /api/emails - POST request endpoint to send an email. The request body should be an ``Email`` object.
 
 ## Object documentation
-
+```
+UserLogin {
+    username: string (1 char min, 72 char limit),
+    password: string (1 char min, 72 char limit)
+}
+```
+```
+Authentication {
+    is_admin: boolean,
+    token: number (128 bits unsigned), don't store in JS number type)
+}
+```
+```
+SolarPanelInfo {
+    array_id: number (32 bits signed),
+    solar_status: string, (do not turn into a number)
+    array_voltage: number (32 bits signed),
+    array_current: number (32 bits signed),
+    array_temp: number (32 bits signed),
+    tracker_tilt: number (32 bits signed),
+    tracker_azimuth: number (32 bits signed)
+}
+```
+```
+File {
+    name: string (72 char max)
+    id: string
+    size: number (64 bit unsigned)
+}
+```
+```
+Email {
+    subject: string (1 char min, 72 char max)
+    from: string (1 char min, 72 char max)
+    size: number (64 bit unsigned)
+}
+```
 
 ## Security
 Each endpoint's rate limits will be documented. The rate limits shouldn't be hit through regular operation, but should be taken into account on the frontend. If a rate limit is hit, a 429 response code will be given with a Retry-After header in seconds. Each open port listened to will be treated as potentially malicious and will attempt not to process any invalid requests. This should be run in some sort of service that auto-restarts. Communication with the REST API should be done over TLS using the specified self-signed certificate from the environment variables.
@@ -45,9 +88,10 @@ Each endpoint's rate limits will be documented. The rate limits shouldn't be hit
 - [~] Inapplicable
 - [ ] Incomplete
 -----------------------------
+- [ ] Ensure file upload names are sanitized.
 - [ ] Ensure file upload byte limit is enforced.
 - [ ] Ensure size limit for form submission is enforced.
-- [ ] Ensure size limit for login submission is enforced.
+- [ ] Ensure size limits for login submission is enforced.
 - [ ] Ensure custom rate limit for form submission is enforced.
 - [ ] Ensure custom rate limit for login submission is enforced.
 - [ ] Ensure default rate limit is enforced for all other applicable endpoints.
