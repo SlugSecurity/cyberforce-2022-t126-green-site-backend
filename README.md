@@ -23,22 +23,31 @@ Contains all of our endpoints for our green team website, which will be document
 - SSL_CERTIFICATE_PEM_PATH - Path of SSL certificate PEM
 - SSL_PRIVATE_KEY_PEM_PATH - Path of private key PEM
 - DATA_SUBMISSION_LIMIT - The limit in bytes of the size of any kind of data submissions (file uploads along with login and contact form submissions)
-- PASSWORD_LIMIT - The limit in bytes of the size of entered passwords
 - DATA_SUBMISSION_RATE_LIMIT - The number of requests allowed per second for login and contact form submissions and file uploads.
 - DEFAULT_RATE_LIMIT - The number of requests allowed per second for all other applicable endpoints that don't have a custom rate limit.
 
 ## Endpoint Documentation (See next section down for object documentation.)
-Any JSON data sent via a POST request should have a content type of 'application/json' unless it's a file upload
-in which case 'multipart/form-data' should be used. Authentication is token-based that's returned when logging in.
-Privileged endpoints as specified below can only be accessed by admin accounts.
+Any JSON data sent via a POST request should have a content type of 'application/json' unless it's a file upload in which case 'multipart/form-data' should be used. 
+
+Authentication is token-based that's returned when logging in. Privileged endpoints as specified below can only be accessed by admin accounts using the token in the Authorization header with type ``Bearer``. 
+
+All endpoints have rate limits as specified in the environment variables, which will give response code 429 if it is hit. Any payloads above DATA_SUBMISSION_LIMIT will get response code 413. If a provided endpoint's service is down, response code 503 will be given.
 
 - /api/login - POST request endpoint. The request body should be a ``UserLogin`` object. Responds with an ``Authentication`` object.
+  - Response code 400 if UserLogin is malformed or character limits are bad.
+  - Response code 401 if credentials are invalid.
 - /api/solar - GET request endpoint to retrieve solar panel info. Responds with a ``SolarPanelInfo`` object.
-- /api/files - Privileged GET request endpoint to retrieve all file metadata from the FTP server. This should be a ``multipart/form-data`` where the content disposition header has ``form-data`` as the first directive followed by the ``filename`` directive that is between 1-72 characters.
-- /api/files - POST request endpoint to upload a file to the FTP server. The request body should be a ``File`` object.
+- /api/files - Privileged GET request endpoint to retrieve all file metadata from the FTP server.
+  - Response code 401 if authorization token is invalid.
+- /api/files - POST request endpoint to upload a file to the FTP server. This should be a ``multipart/form-data`` where the content disposition header has ``form-data`` as the first directive followed by the ``filename`` directive that is between 1-72 characters.
+  - Response code 400 if content type isn't multipart/form-data with valid form data, filename directive isn't provided, or file name isn't set to a valid file name between 1 and 72 characters.
 - /api/files/**ID** - Privileged GET request endpoint to download a file from the FTP server by ID. Returns the file data in the response body with the content type set to 'application/octet-stream' and content disposition set to ``attachment; filename="<FILE_NAME>"``.
+  - Response code 400 if file with provided ID doesn't exist.
+  - Response code 401 if authorization token is invalid.
 - /api/emails - Privileged GET request endpoint to get all stored emails. Returns an ``Email`` object on success.
+  - Response code 401 if authorization token is invalid.
 - /api/emails - POST request endpoint to send an email. The request body should be an ``Email`` object.
+  - Response code 400 if Email is malformed or character limits on ``subject`` or ``from`` field are bad (413 response code if overall payload limit is reached).
 
 ## Object documentation
 ```
@@ -75,7 +84,7 @@ File {
 Email {
     subject: string (1 char min, 72 char max)
     from: string (1 char min, 72 char max)
-    size: number (64 bit unsigned)
+    body: string
 }
 ```
 
