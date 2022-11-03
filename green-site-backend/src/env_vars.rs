@@ -20,7 +20,6 @@ use green_site_backend_macros::env_vars;
 #[env_var("SSL_CERTIFICATE_PEM_PATH", String)]
 #[env_var("SSL_PRIVATE_KEY_PEM_PATH", String)]
 #[env_var("DATA_SUBMISSION_LIMIT", usize)]
-#[env_var("PASSWORD_LIMIT", usize)]
 #[env_var("DATA_SUBMISSION_RATE_LIMIT", usize)]
 #[env_var("DEFAULT_RATE_LIMIT", usize)]
 pub(crate) struct BackendVars;
