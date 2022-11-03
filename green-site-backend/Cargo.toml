@@ -14,6 +14,9 @@ green-site-backend-macros = { version = "0.1", path = "../green-site-backend-mac
 serde = { version = "1", features = ["derive"] }
 mime = "0.3"
 ldap3 = "0.10"
+env_logger = "0.9"
+log = "0.4"
+rand = "0.8"
 
 
 #TODO: 
