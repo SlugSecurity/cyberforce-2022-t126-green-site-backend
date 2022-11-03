@@ -24,7 +24,7 @@ Contains all of our endpoints for our green team website, which will be document
 - DATA_SUBMISSION_RATE_LIMIT - The number of requests allowed per second for login and contact form submissions and file uploads.
 - DEFAULT_RATE_LIMIT - The number of requests allowed per second for all other applicable endpoints that don't have a custom rate limit.
 - ADMIN_ACCOUNT_USERNAME - The username of the admin.
-- SSL_CERTIFICATE_PEM_PATH - Path of SSL certificate PEM (contains entire chain including root certificate)
+- SSL_CERTIFICATE_PEM_PATH - Path of SSL certificate PEM
 - SSL_PRIVATE_KEY_PEM_PATH - Path of private key PEM
 - ROOT_CERTIFICATE_PATH - Path of root certificate
 
@@ -35,7 +35,7 @@ Authentication is token-based that's returned when logging in. Privileged endpoi
 
 All endpoints have rate limits as specified in the environment variables, which will give response code 429 if it is hit. Any payloads above DATA_SUBMISSION_LIMIT will get response code 413. If a provided endpoint's service is down, response code 503 will be given.
 
-Any 40x and 50x response codes returned will also return an ErrorResponse containing one ``error`` field which is a string with the error message.
+Any 40x and 50x response codes returned will also return an object containing one ``error`` field which is a string with the error message.
 
 - /api/login - POST request endpoint. The request body should be a ``UserLogin`` object. Responds with an ``Authentication`` object.
   - Response code 400 if UserLogin is malformed or character limits are bad.
