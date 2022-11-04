@@ -18,7 +18,7 @@ env_logger = "0.9"
 log = "0.4"
 webpki = "0.22"
 sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "mysql" ] }
-suppaftp = { version = "4", features = ["async-rustls"] }
+suppaftp = { version = "4", features = ["async-native-tls-vendored"] }
 
 #TODO: 
 # use lettre for SMTP/S
