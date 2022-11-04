@@ -15,7 +15,7 @@ ldap3 = { version = "0.10" }
 env_logger = "0.9"
 log = "0.4"
 webpki = "0.22"
-sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls", "mysql" ] }
+sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls", "mysql", "sqlite" ] }
 suppaftp = { version = "4", features = ["async-native-tls-vendored"] }
 rustls = "0.20"
 rustls-pemfile = "1"

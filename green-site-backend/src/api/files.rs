@@ -22,6 +22,7 @@ use suppaftp::{
 use crate::{
     env_vars::BackendVars,
     error::{internal_server_error, ErrorResponse},
+    verify_admin_token,
 };
 
 fn get_tls_connector(cert: &Certificate) -> FtpTlsConnector {
@@ -101,6 +102,8 @@ async fn list_files(var: &BackendVars, cert: &Certificate) -> FtpResult<Vec<File
 async fn get_files(req: HttpRequest) -> impl Responder {
     let (var, cert) = verify_var_cert!(req);
 
+    verify_admin_token!(req, var);
+
     match list_files(var, cert).await {
         Ok(files) => HttpResponse::Ok().json(files),
         Err(err) => {
@@ -113,8 +116,6 @@ async fn get_files(req: HttpRequest) -> impl Responder {
 
 #[post("")]
 async fn upload_file(req: HttpRequest) -> impl Responder {
-    let (var, cert) = verify_var_cert!(req);
-
     let target_type = mime::MULTIPART_FORM_DATA.essence_str();
 
     if req.content_type() != target_type {
@@ -122,6 +123,8 @@ async fn upload_file(req: HttpRequest) -> impl Responder {
             error: format!("Content type must be {target_type}."),
         });
     }
+
+    let (var, cert) = verify_var_cert!(req);
 
     // parse the muultipart form data
 
@@ -141,6 +144,9 @@ async fn get_file_by_id(req: HttpRequest, path: Path<u128>) -> impl Responder {
     }
 
     let (var, cert) = verify_var_cert!(req);
+
+    verify_admin_token!(req, var);
+
     let file_id = path.to_string();
 
     let files = match list_files(var, cert).await {

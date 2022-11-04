@@ -17,7 +17,6 @@ use native_tls::{Protocol, TlsConnector};
 use rustls::{Certificate as RustCertificate, PrivateKey, ServerConfig};
 use rustls_pemfile::Item::*;
 use sqlx::{mysql::MySqlConnectOptions, pool::PoolOptions, MySqlPool};
-
 use suppaftp::async_native_tls::Certificate as FtpCertificate;
 
 mod api;

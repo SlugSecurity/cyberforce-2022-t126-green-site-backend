@@ -1,8 +1,7 @@
 use green_site_backend_macros::env_vars;
 
 #[env_vars]
-#[env_var("LDAPS_SERVER_IP", String)]
-#[env_var("LDAPS_SERVER_PORT", u16)]
+#[env_var("SQLITE_FILE_NAME", String)]
 #[env_var("FTPS_SERVER_IP", String)]
 #[env_var("FTPS_SERVER_PORT", u16)]
 #[env_var("FTPS_USER", String)]
