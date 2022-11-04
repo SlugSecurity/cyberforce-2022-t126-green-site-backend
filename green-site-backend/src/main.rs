@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File, io::BufReader};
+use std::{error::Error, fs::File, io::BufReader, sync::Arc};
 
 use actix_web::{
     middleware::{self, Logger, TrailingSlash},
@@ -6,9 +6,9 @@ use actix_web::{
 };
 use env_logger::Builder;
 use env_vars::BackendVars;
-use error::ServerConfigError;
+use error::CertConfigError;
 use log::LevelFilter;
-use rustls::{Certificate, PrivateKey, ServerConfig};
+use rustls::{Certificate, ClientConfig, PrivateKey, RootCertStore, ServerConfig};
 use rustls_pemfile::Item::*;
 
 mod api;
@@ -16,8 +16,8 @@ mod env_vars;
 mod error;
 mod token;
 
-fn get_cert(vars: &BackendVars) -> Result<ServerConfig, ServerConfigError> {
-    use ServerConfigError::*;
+fn get_web_server_cert(vars: &BackendVars) -> Result<ServerConfig, CertConfigError> {
+    use CertConfigError::*;
 
     let config = ServerConfig::builder()
         .with_safe_defaults()
@@ -37,7 +37,12 @@ fn get_cert(vars: &BackendVars) -> Result<ServerConfig, ServerConfigError> {
         .map_err(|e| ReadPemIoError(cert_path.to_string(), e))?
         .into_iter()
         .map(Certificate)
-        .collect();
+        .collect::<Vec<_>>();
+
+    if cert_chain.is_empty() {
+        return Err(BadRootCertificate(None));
+    }
+
     let key_item = rustls_pemfile::read_one(&mut BufReader::new(key_file))
         .map_err(|e| ReadPemIoError(key_path.to_string(), e))?
         .ok_or_else(|| UnrecognizedPrivateKey(key_path.to_string()))?;
@@ -49,11 +54,40 @@ fn get_cert(vars: &BackendVars) -> Result<ServerConfig, ServerConfigError> {
     Ok(config.with_single_cert(cert_chain, key)?)
 }
 
+fn get_trusted_roots(vars: &BackendVars) -> Result<RootCertStore, CertConfigError> {
+    use CertConfigError::*;
+
+    let root_cert_path = vars.root_certificate_path.as_str();
+    let root_cert_file = match File::open(root_cert_path) {
+        Ok(ok) => ok,
+        Err(err) => return Err(ReadPemIoError(root_cert_path.to_string(), err)),
+    };
+    let root_cert = rustls_pemfile::certs(&mut BufReader::new(root_cert_file))
+        .map_err(|e| ReadPemIoError(root_cert_path.to_string(), e))?
+        .into_iter()
+        .map(Certificate)
+        .next()
+        .ok_or_else(|| BadRootCertificate(None))?;
+
+    let mut cert_store = RootCertStore::empty();
+
+    cert_store.add(&root_cert)?;
+
+    Ok(cert_store)
+}
+
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let backend_vars = BackendVars::new()?;
-    let rustls_config = get_cert(&backend_vars)?;
+    let rustls_server_config = get_web_server_cert(&backend_vars)?;
     let port = backend_vars.web_server_port;
+    let root_store = get_trusted_roots(&backend_vars)?;
+    let rustls_client_config = Arc::new(
+        ClientConfig::builder()
+            .with_safe_defaults()
+            .with_root_certificates(root_store)
+            .with_no_client_auth(),
+    );
 
     Builder::new()
         .filter_level(LevelFilter::Warn)
@@ -65,9 +99,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .wrap(Logger::default())
             .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
             .app_data(backend_vars.clone())
+            .app_data(rustls_client_config.clone())
             .service(web::scope("/api").configure(api::endpoint_config))
     })
-    .bind_rustls(format!("0.0.0.0:{port}"), rustls_config)?
+    .bind_rustls(format!("0.0.0.0:{port}"), rustls_server_config)?
     .run()
     .await?;
 
