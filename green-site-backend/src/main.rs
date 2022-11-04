@@ -1,4 +1,4 @@
-use std::{error::Error, fs::File, io::BufReader, sync::Arc};
+use std::{error::Error, fs::File, io::BufReader, sync::Arc, time::Duration};
 
 use actix_web::{
     middleware::{self, Logger, TrailingSlash},
@@ -10,6 +10,11 @@ use error::CertConfigError;
 use log::LevelFilter;
 use rustls::{Certificate, ClientConfig, PrivateKey, RootCertStore, ServerConfig};
 use rustls_pemfile::Item::*;
+use sqlx::{
+    mysql::{MySqlConnectOptions, MySqlSslMode},
+    pool::PoolOptions,
+    MySqlPool,
+};
 
 mod api;
 mod env_vars;
@@ -76,6 +81,24 @@ fn get_trusted_roots(vars: &BackendVars) -> Result<RootCertStore, CertConfigErro
     Ok(cert_store)
 }
 
+fn create_pool(vars: &BackendVars) -> MySqlPool {
+    let conn_options = MySqlConnectOptions::new()
+        .host(&vars.data_historian_ip)
+        .port(vars.data_historian_port)
+        .username(&vars.data_historian_user)
+        .password(&vars.data_historian_pass)
+        .database(&vars.data_historian_db_name)
+        .ssl_mode(MySqlSslMode::VerifyCa)
+        .ssl_ca(&vars.root_certificate_path);
+
+    PoolOptions::new()
+        .max_connections(50)
+        .min_connections(2)
+        .acquire_timeout(Duration::from_secs(3))
+        .max_lifetime(Some(Duration::from_secs(3600)))
+        .connect_lazy_with(conn_options)
+}
+
 #[actix_web::main]
 async fn main() -> Result<(), Box<dyn Error>> {
     let backend_vars = BackendVars::new()?;
@@ -88,6 +111,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .with_root_certificates(root_store)
             .with_no_client_auth(),
     );
+    let mysql_pool = create_pool(&backend_vars);
 
     Builder::new()
         .filter_level(LevelFilter::Warn)
@@ -99,6 +123,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .wrap(Logger::default())
             .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
             .app_data(backend_vars.clone())
+            .app_data(mysql_pool.clone())
             .app_data(rustls_client_config.clone())
             .service(web::scope("/api").configure(api::endpoint_config))
     })
