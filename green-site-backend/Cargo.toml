@@ -16,7 +16,6 @@ mime = "0.3"
 ldap3 = "0.10"
 env_logger = "0.9"
 log = "0.4"
-rand = "0.8"
 
 
 #TODO: 

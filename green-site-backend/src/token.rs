@@ -1,15 +1,18 @@
 use serde::Serialize;
 
+use crate::env_vars::BackendVars;
+
 #[derive(Serialize)]
 #[serde(transparent)]
-pub(crate) struct Token(u128);
+pub(crate) struct AdminToken(String);
 
-/// Generates token and puts an SHA-256 hash of it at ``username.key``in the
-/// working directory where the username is the provided parameter.
-pub(crate) fn generate_token(username: &str) -> Token {
-    let rand_token = rand::thread_rng().gen();
-
-    rand_token
+impl AdminToken {
+    pub fn new(token: String) -> Self {
+        Self(token)
+    }
 }
 
-pub(crate) fn verify_token() {}
+/// Verifies the token is that of the admin account.
+pub(crate) fn is_admin_token(token: AdminToken, env_var: BackendVars) -> bool {
+    env_var.admin_token == token.0
+}

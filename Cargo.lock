@@ -629,7 +629,6 @@ dependencies = [
  "ldap3",
  "log",
  "mime",
- "rand",
  "rustls",
  "rustls-pemfile",
  "serde",

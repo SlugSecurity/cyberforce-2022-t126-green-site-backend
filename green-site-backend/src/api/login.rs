@@ -10,7 +10,7 @@ use serde::{Deserialize, Serialize};
 use crate::{
     env_vars::BackendVars,
     error::{ErrorResponse, INTERNAL_ERROR, NO_ENV_VAR_APP_DATA},
-    token::{generate_token, Token},
+    token::AdminToken,
 };
 
 const MIN_USERNAME_LEN: usize = 1;
@@ -28,7 +28,7 @@ struct UserLogin {
 #[derive(Serialize)]
 struct Authentication {
     is_admin: bool,
-    token: Token,
+    token: Option<AdminToken>,
 }
 
 const BAD_CRED_CODE: u32 = 49; // Invalid credential result code for LDAP. See https://www.rfc-editor.org/rfc/rfc4511#appendix-A.1
@@ -91,7 +91,7 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
             }
             Ok(is_admin) => HttpResponse::Ok().json(Authentication {
                 is_admin,
-                token: generate_token(&user_login.username),
+                token: is_admin.then(|| AdminToken::new(vars.admin_token.clone())),
             }),
         }
     } else {
