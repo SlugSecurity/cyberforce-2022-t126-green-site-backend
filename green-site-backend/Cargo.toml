@@ -17,8 +17,8 @@ log = "0.4"
 webpki = "0.22"
 sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls", "mysql", "sqlite" ] }
 suppaftp = { version = "4", features = ["async-native-tls-vendored"] }
-rustls = "0.20"
-rustls-pemfile = "1"
+# rustls = "0.20"
+# rustls-pemfile = "1"
 native-tls = "0.2"
 rand = "0.8"
 futures = "0.3"

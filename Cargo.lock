@@ -1015,8 +1015,6 @@ dependencies = [
  "mime",
  "native-tls",
  "rand",
- "rustls",
- "rustls-pemfile",
  "serde",
  "sqlx",
  "suppaftp",
@@ -1853,15 +1851,6 @@ dependencies = [
  "ring",
  "sct",
  "webpki",
-]
-
-[[package]]
-name = "rustls-pemfile"
-version = "1.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0864aeff53f8c05aa08d86e5ef839d3dfcf07aeba2db32f12db0ef716e87bd55"
-dependencies = [
- "base64",
 ]
 
 [[package]]

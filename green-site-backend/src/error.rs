@@ -11,8 +11,8 @@ pub(crate) const MISSING_APP_DATA: &str = "Missing app data. This should never h
 #[derive(Debug)]
 pub(crate) enum CertConfigError {
     ReadPemIoError(String, io::Error),
-    SetCertificateError(rustls::Error),
-    UnrecognizedPrivateKey(String),
+    // SetCertificateError(rustls::Error),
+    // UnrecognizedPrivateKey(String),
     BadRootCertificate(Option<webpki::Error>, Option<async_native_tls::Error>),
 }
 
@@ -20,18 +20,18 @@ impl Display for CertConfigError {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             ReadPemIoError(file, _) => write!(f, "Error while reading PEM file: {file}"),
-            SetCertificateError(_) => write!(f, "Certificate or private key not valid."),
-            UnrecognizedPrivateKey(s) => write!(f, "Unrecognized or no private key in {s}"),
+            // SetCertificateError(_) => write!(f, "Certificate or private key not valid."),
+            // UnrecognizedPrivateKey(s) => write!(f, "Unrecognized or no private key in {s}"),
             BadRootCertificate(err, _) => write!(f, "Bad root certificate provided: {err:?}"),
         }
     }
 }
 
-impl From<rustls::Error> for CertConfigError {
-    fn from(value: rustls::Error) -> Self {
-        SetCertificateError(value)
-    }
-}
+// impl From<rustls::Error> for CertConfigError {
+//     fn from(value: rustls::Error) -> Self {
+//         SetCertificateError(value)
+//     }
+// }
 
 impl From<webpki::Error> for CertConfigError {
     fn from(value: webpki::Error) -> Self {
@@ -49,7 +49,7 @@ impl Error for CertConfigError {
     fn source(&self) -> Option<&(dyn Error + 'static)> {
         match self {
             ReadPemIoError(_, err) => Some(err),
-            SetCertificateError(err) => Some(err),
+            // SetCertificateError(err) => Some(err),
             _ => None,
         }
     }
