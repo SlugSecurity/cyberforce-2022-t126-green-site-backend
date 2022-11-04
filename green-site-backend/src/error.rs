@@ -57,7 +57,7 @@ impl Error for CertConfigError {
 
 #[derive(Serialize)]
 pub(crate) struct ErrorResponse {
-    error: String,
+    pub error: String,
 }
 
 pub(crate) fn internal_server_error() -> HttpResponse {

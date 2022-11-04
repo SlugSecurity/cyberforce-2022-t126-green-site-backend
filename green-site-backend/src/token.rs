@@ -13,6 +13,6 @@ impl AdminToken {
 }
 
 /// Verifies the token is that of the admin account.
-pub(crate) fn is_admin_token(token: AdminToken, env_var: BackendVars) -> bool {
+pub(crate) fn has_admin_token(token: AdminToken, env_var: BackendVars) -> bool {
     env_var.admin_token == token.0
 }

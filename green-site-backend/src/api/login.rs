@@ -7,6 +7,7 @@ use actix_web::{
 };
 use ldap3::{drive, LdapConnAsync, LdapConnSettings, LdapError, LdapResult};
 use log::{error, warn};
+use native_tls::TlsConnector;
 use rustls::ClientConfig;
 use serde::{Deserialize, Serialize};
 
@@ -43,14 +44,14 @@ const LDAP_DIR_USERS_DIR: &str = "CN=Users,CN=GreenTeamWebsite,DC=sunpartners,DC
 async fn check_credentials(
     user_login: &UserLogin,
     vars: &BackendVars,
-    cfg: Arc<ClientConfig>,
+    connector: TlsConnector,
 ) -> Result<Authentication, LdapError> {
     // CRITICAL CODE: ENSURE AN OK RESULT CAN NEVER BE RETURNED IF THE CREDENTIALS ARE INVALID.
 
     let conn_uri = format!("ldaps://{}", vars.ldaps_server_ip);
     let settings = LdapConnSettings::new()
         .set_conn_timeout(TIMEOUT)
-        .set_config(cfg); // Sets our trusted certificates.
+        .set_connector(connector); // Sets our trusted certificates.
     let (conn, mut ldap) = LdapConnAsync::with_settings(settings, conn_uri.as_str()).await?;
 
     drive!(conn);
@@ -89,11 +90,11 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
         });
     }
 
-    if let (Some(vars), Some(cfg)) = (
+    if let (Some(vars), Some(connector)) = (
         req.app_data::<BackendVars>(),
-        req.app_data::<Arc<ClientConfig>>(),
+        req.app_data::<TlsConnector>(),
     ) {
-        match check_credentials(&user_login.0, &vars, cfg.clone()).await {
+        match check_credentials(&user_login.0, &vars, connector.clone()).await {
             Ok(authed) => HttpResponse::Ok().json(authed),
             Err(LdapError::LdapResult {
                 result: LdapResult {

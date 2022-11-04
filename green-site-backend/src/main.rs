@@ -2,7 +2,6 @@ use std::{
     error::Error,
     fs::File,
     io::{BufReader, Read},
-    sync::Arc,
     time::Duration,
 };
 
@@ -14,7 +13,8 @@ use env_logger::Builder;
 use env_vars::BackendVars;
 use error::CertConfigError;
 use log::LevelFilter;
-use rustls::{Certificate, ClientConfig, PrivateKey, RootCertStore, ServerConfig};
+use native_tls::{Protocol, TlsConnector};
+use rustls::{Certificate as RustCertificate, PrivateKey, ServerConfig};
 use rustls_pemfile::Item::*;
 use sqlx::{mysql::MySqlConnectOptions, pool::PoolOptions, MySqlPool};
 
@@ -45,7 +45,7 @@ fn get_web_server_cert(vars: &BackendVars) -> Result<ServerConfig, CertConfigErr
     let cert_chain = rustls_pemfile::certs(&mut BufReader::new(cert_file))
         .map_err(|e| ReadPemIoError(cert_path.to_string(), e))?
         .into_iter()
-        .map(Certificate)
+        .map(RustCertificate)
         .collect::<Vec<_>>();
 
     let key_item = rustls_pemfile::read_one(&mut BufReader::new(key_file))
@@ -59,9 +59,7 @@ fn get_web_server_cert(vars: &BackendVars) -> Result<ServerConfig, CertConfigErr
     Ok(config.with_single_cert(cert_chain, key)?)
 }
 
-fn get_trusted_roots(
-    vars: &BackendVars,
-) -> Result<(RootCertStore, FtpCertificate), CertConfigError> {
+fn get_trusted_roots(vars: &BackendVars) -> Result<FtpCertificate, CertConfigError> {
     use CertConfigError::*;
 
     let root_cert_path = vars.root_certificate_path.as_str();
@@ -74,18 +72,7 @@ fn get_trusted_roots(
         .read_to_end(&mut root_cert_bytes)
         .map_err(|e| ReadPemIoError(root_cert_path.to_string(), e))?;
 
-    let native_root_cert = FtpCertificate::from_pem(&root_cert_bytes)?;
-    let rust_root_cert = rustls_pemfile::certs(&mut &root_cert_bytes[..])
-        .map_err(|e| ReadPemIoError(root_cert_path.to_string(), e))?
-        .into_iter()
-        .map(Certificate)
-        .next()
-        .ok_or_else(|| BadRootCertificate(None, None))?;
-
-    let mut cert_store = RootCertStore::empty();
-    cert_store.add(&rust_root_cert)?;
-
-    Ok((cert_store, native_root_cert))
+    Ok(FtpCertificate::from_pem(&root_cert_bytes)?)
 }
 
 fn create_pool(vars: &BackendVars) -> MySqlPool {
@@ -109,16 +96,13 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let backend_vars = BackendVars::new()?;
     let rustls_server_config = get_web_server_cert(&backend_vars)?;
     let port = backend_vars.web_server_port;
-    let (root_store, native_cert) = get_trusted_roots(&backend_vars)?;
-
-    let rustls_client_config = Arc::new(
-        ClientConfig::builder()
-            .with_safe_defaults()
-            .with_root_certificates(root_store)
-            .with_no_client_auth(),
-    );
-
+    let native_cert = get_trusted_roots(&backend_vars)?;
     let mysql_pool = create_pool(&backend_vars);
+    let connector = TlsConnector::builder()
+        .min_protocol_version(Some(Protocol::Tlsv12))
+        .add_root_certificate(native_cert.clone())
+        .use_sni(false)
+        .build()?;
 
     Builder::new()
         .filter_level(LevelFilter::Warn)
@@ -131,8 +115,8 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
             .app_data(backend_vars.clone())
             .app_data(mysql_pool.clone())
-            .app_data(rustls_client_config.clone())
             .app_data(native_cert.clone())
+            .app_data(connector.clone())
             .service(web::scope("/api").configure(api::endpoint_config))
     })
     .bind_rustls(format!("0.0.0.0:{port}"), rustls_server_config)?

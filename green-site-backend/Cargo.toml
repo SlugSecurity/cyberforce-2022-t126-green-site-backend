@@ -7,18 +7,19 @@ edition = "2021"
 
 [dependencies]
 thiserror = "1"
-rustls-pemfile = "1"
-rustls = "0.20"
 actix-web = { version = "4", features = ["rustls"] }
 green-site-backend-macros = { version = "0.1", path = "../green-site-backend-macros" }
 serde = { version = "1", features = ["derive"] }
 mime = "0.3"
-ldap3 = { version = "0.10", default-features = false, features = ["tls-rustls"] }
+ldap3 = { version = "0.10" }
 env_logger = "0.9"
 log = "0.4"
 webpki = "0.22"
-sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "mysql" ] }
+sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls", "mysql" ] }
 suppaftp = { version = "4", features = ["async-native-tls-vendored"] }
+rustls = "0.20"
+rustls-pemfile = "1"
+native-tls = "0.2"
 
 #TODO: 
 # use lettre for SMTP/S
