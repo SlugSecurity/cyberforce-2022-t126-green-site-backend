@@ -17,10 +17,9 @@ ldap3 = { version = "0.10", default-features = false, features = ["tls-rustls"] 
 env_logger = "0.9"
 log = "0.4"
 webpki = "0.22"
-sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "mysql" ]}
-
+sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "mysql" ] }
+suppaftp = { version = "4", features = ["async-rustls"] }
 
 #TODO: 
 # use lettre for SMTP/S
 # use imap for IMAP/S
-# use suppaftp for FTP/S
