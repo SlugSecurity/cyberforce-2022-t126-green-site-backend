@@ -4,8 +4,7 @@
 Contains all of our endpoints for our green team website, which will be documented below.
 
 ## Used Environment variables
-- LDAPS_SERVER_IP - IP of LDAPS server
-- LDAPS_SERVER_PORT - Port of LDAPS server
+- SQLITE_FILE_NAME - Name of SQLite DB
 - FTPS_SERVER_IP - IP of FTPS server
 - FTPS_SERVER_PORT - Port of FTPS server
 - FTPS_USER - The username to log into the FTPS server
@@ -88,8 +87,8 @@ File {
 ```
 ```
 Email {
-    subject: string (1 char min, 72 char max)
-    from: string (1 char min, 72 char max)
+    subject: string (1 char min, 100 char max)
+    from: string (1 char min, 100 char max)
     body: string
 }
 ```
