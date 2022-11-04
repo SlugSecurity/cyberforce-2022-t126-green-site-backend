@@ -103,7 +103,9 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     HttpServer::new(move || {
         App::new()
-            .wrap(Logger::default())
+            .wrap(Logger::new(
+                r#"%{r}a "%r" %s %b "%{Referer}i" "%{User-Agent}i" %T"#,
+            ))
             .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
             .app_data(backend_vars.clone())
             .app_data(mysql_pool.clone())
