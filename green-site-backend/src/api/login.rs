@@ -12,7 +12,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{
     env_vars::BackendVars,
-    error::{ErrorResponse, INTERNAL_ERROR, MISSING_APP_DATA},
+    error::{self, ErrorResponse, MISSING_APP_DATA},
     token::AdminToken,
 };
 
@@ -44,7 +44,7 @@ async fn check_credentials(
     user_login: &UserLogin,
     vars: &BackendVars,
     cfg: Arc<ClientConfig>,
-) -> Result<bool, LdapError> {
+) -> Result<Authentication, LdapError> {
     // CRITICAL CODE: ENSURE AN OK RESULT CAN NEVER BE RETURNED IF THE CREDENTIALS ARE INVALID.
 
     let conn_uri = format!("ldaps://{}", vars.ldaps_server_ip);
@@ -61,7 +61,12 @@ async fn check_credentials(
         .await?
         .success()?; // Propogates the ldapresult if it wasnt successful
 
-    Ok(vars.admin_account_username == user_name) // Return if user is admin
+    let is_admin = vars.admin_account_username == user_name;
+
+    Ok(Authentication {
+        is_admin,
+        token: is_admin.then(|| AdminToken::new(vars.admin_token.clone())),
+    })
 }
 
 #[post("")]
@@ -85,6 +90,7 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
         req.app_data::<Arc<ClientConfig>>(),
     ) {
         match check_credentials(&user_login.0, &vars, cfg.clone()).await {
+            Ok(authed) => HttpResponse::Ok().json(authed),
             Err(LdapError::LdapResult {
                 result: LdapResult {
                     rc: BAD_CRED_CODE, ..
@@ -102,12 +108,8 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
             Err(err) => {
                 error!("Encountered LDAP error: {err}. Sending 500 response code...");
 
-                HttpResponse::InternalServerError().json(ErrorResponse(INTERNAL_ERROR.to_string()))
+                error::internal_server_error()
             }
-            Ok(is_admin) => HttpResponse::Ok().json(Authentication {
-                is_admin,
-                token: is_admin.then(|| AdminToken::new(vars.admin_token.clone())),
-            }),
         }
     } else {
         error!(
@@ -116,7 +118,7 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
             req.app_data::<Arc<ClientConfig>>()
         );
 
-        HttpResponse::InternalServerError().json(ErrorResponse(INTERNAL_ERROR.to_string()))
+        error::internal_server_error()
     }
 }
 
