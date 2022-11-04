@@ -16,6 +16,8 @@ use green_site_backend_macros::env_vars;
 #[env_var("DATA_HISTORIAN_PORT", u16)]
 #[env_var("DATA_HISTORIAN_USER", String)]
 #[env_var("DATA_HISTORIAN_PASS", String)]
+#[env_var("DATA_HISTORIAN_DB_NAME", String)]
+#[env_var("DATA_HISTORIAN_DB_TABLE", String)]
 #[env_var("WEB_SERVER_PORT", u16)]
 #[env_var("DATA_SUBMISSION_LIMIT", usize)]
 #[env_var("DATA_SUBMISSION_RATE_LIMIT", usize)]

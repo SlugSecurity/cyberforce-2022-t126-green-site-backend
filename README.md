@@ -19,6 +19,8 @@ Contains all of our endpoints for our green team website, which will be document
 - DATA_HISTORIAN_PORT - Port of Data Historian database
 - DATA_HISTORIAN_USER - The username to log into the Data Historian database
 - DATA_HISTORIAN_PASS - The password to log into the Data Historian database
+- DATA_HISTORIAN_DB_NAME - The name of the database that contains the solar panel array info.
+- DATA_HISTORIAN_DB_TABLE - The database table that contains the solar panel array info.
 - WEB_SERVER_PORT - Port of web server backend
 - DATA_SUBMISSION_LIMIT - The limit in bytes of the size of any kind of data submissions (file uploads along with login and contact form submissions)
 - DATA_SUBMISSION_RATE_LIMIT - The number of requests allowed per second for login and contact form submissions and file uploads.
