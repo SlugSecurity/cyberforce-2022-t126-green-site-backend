@@ -43,7 +43,7 @@ Any 40x and 50x response codes returned will also return an object containing on
 - /api/login - POST request endpoint. The request body should be a ``UserLogin`` object. Responds with an ``Authentication`` object.
   - Response code 400 if UserLogin is malformed, character limits are bad, or username isn't all lowercase ASCII characters.
   - Response code 401 if credentials are invalid.
-- /api/solar - GET request endpoint to retrieve solar panel info. Responds with a ``SolarPanelInfo`` object.
+- /api/solar - GET request endpoint to retrieve solar panel info. Responds with a ``[SolarPanelInfo]`` object.
 - /api/files - Privileged GET request endpoint to retrieve all file metadata from the FTP server.
   - Response code 401 if authorization token is invalid.
 - /api/files - POST request endpoint to upload a file to the FTP server. This should be a ``multipart/form-data`` where the content disposition header has ``form-data`` as the first directive followed by the ``filename`` directive that is between 1-72 characters.
