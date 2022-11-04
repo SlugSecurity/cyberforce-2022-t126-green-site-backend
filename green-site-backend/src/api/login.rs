@@ -102,7 +102,7 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
             Err(err) => {
                 error!("Encountered LDAP error: {err}. Sending 500 response code...");
 
-                HttpResponse::BadRequest().json(ErrorResponse(INTERNAL_ERROR.to_string()))
+                HttpResponse::InternalServerError().json(ErrorResponse(INTERNAL_ERROR.to_string()))
             }
             Ok(is_admin) => HttpResponse::Ok().json(Authentication {
                 is_admin,
@@ -116,7 +116,7 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
             req.app_data::<Arc<ClientConfig>>()
         );
 
-        HttpResponse::BadRequest().json(ErrorResponse(INTERNAL_ERROR.to_string()))
+        HttpResponse::InternalServerError().json(ErrorResponse(INTERNAL_ERROR.to_string()))
     }
 }
 
