@@ -1,15 +1,12 @@
-use std::{sync::Arc, time::Duration};
-
 use actix_web::{
     post,
     web::{Json, JsonConfig, ServiceConfig},
     HttpRequest, HttpResponse,
 };
-use ldap3::{drive, LdapConnAsync, LdapConnSettings, LdapError, LdapResult};
 use log::{error, warn};
-use native_tls::TlsConnector;
-use rustls::ClientConfig;
+
 use serde::{Deserialize, Serialize};
+use sqlx::{Connection, Row, SqliteConnection};
 
 use crate::{
     env_vars::BackendVars,
@@ -31,42 +28,33 @@ struct UserLogin {
 
 #[derive(Serialize)]
 struct Authentication {
-    is_admin: bool,
+    #[serde(skip)]
+    is_valid: bool,
     token: Option<AdminToken>,
 }
-
-const TIMEOUT: Duration = Duration::from_secs(3);
-const BAD_CRED_CODE: u32 = 49; // Invalid credential result code for LDAP. See https://www.rfc-editor.org/rfc/rfc4511#appendix-A.1
-const LDAP_DIR_USERS_DIR: &str = "CN=Users,CN=GreenTeamWebsite,DC=sunpartners,DC=local";
 
 /// Checks that the user attempting to login has the correct credentials.
 /// Returns whether the user is an admin or not if credentials could be validated.
 async fn check_credentials(
     user_login: &UserLogin,
     vars: &BackendVars,
-    connector: TlsConnector,
-) -> Result<Authentication, LdapError> {
+) -> sqlx::Result<Authentication> {
     // CRITICAL CODE: ENSURE AN OK RESULT CAN NEVER BE RETURNED IF THE CREDENTIALS ARE INVALID.
 
-    let conn_uri = format!("ldaps://{}", vars.ldaps_server_ip);
-    let settings = LdapConnSettings::new()
-        .set_conn_timeout(TIMEOUT)
-        .set_connector(connector); // Sets our trusted certificates.
-    let (conn, mut ldap) = LdapConnAsync::with_settings(settings, conn_uri.as_str()).await?;
-
-    drive!(conn);
-
-    let user_name = format!("CN={},{LDAP_DIR_USERS_DIR}", user_login.username);
-    ldap.with_timeout(TIMEOUT)
-        .simple_bind(user_name.as_str(), user_login.password.as_str())
+    let mut conn = SqliteConnection::connect(&vars.sqlite_file_name).await?;
+    let pwd: Option<String> = sqlx::query("SELECT password FROM users WHERE username=?;")
+        .bind(user_login.username.as_str())
+        .fetch_optional(&mut conn)
         .await?
-        .success()?; // Propogates the ldapresult if it wasnt successful
-
-    let is_admin = vars.admin_account_username == user_name;
+        .and_then(|pwd| pwd.try_get(0).ok());
+    let (is_valid, used_admin_username) = (
+        pwd.is_some(),
+        user_login.username == vars.admin_account_username,
+    );
 
     Ok(Authentication {
-        is_admin,
-        token: is_admin.then(|| AdminToken::new(vars.admin_token.clone())),
+        is_valid,
+        token: (is_valid && used_admin_username).then(|| AdminToken::new(vars.admin_token.clone())),
     })
 }
 
@@ -90,16 +78,10 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
         });
     }
 
-    if let (Some(vars), Some(connector)) = (
-        req.app_data::<BackendVars>(),
-        req.app_data::<TlsConnector>(),
-    ) {
-        match check_credentials(&user_login.0, &vars, connector.clone()).await {
-            Ok(authed) => HttpResponse::Ok().json(authed),
-            Err(LdapError::LdapResult {
-                result: LdapResult {
-                    rc: BAD_CRED_CODE, ..
-                },
+    if let Some(vars) = req.app_data::<BackendVars>() {
+        match check_credentials(&user_login.0, &vars).await {
+            Ok(Authentication {
+                is_valid: false, ..
             }) => {
                 warn!(
                     "{:?} tried logging in with bad credentials. Username: {}. Password: {}",
@@ -112,17 +94,17 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
                     error: "Bad credentials.".to_string(),
                 })
             }
+            Ok(authed) => HttpResponse::Ok().json(authed),
             Err(err) => {
-                error!("Encountered LDAP error: {err}. Sending 500 response code...");
+                error!("Encountered sqlx error: {err}. Sending 500 response code...");
 
                 error::internal_server_error()
             }
         }
     } else {
         error!(
-            "{MISSING_APP_DATA}. BackendVars: {:?}; Rustls config: {:?}",
+            "{MISSING_APP_DATA}. BackendVars: {:?}",
             req.app_data::<BackendVars>(),
-            req.app_data::<Arc<ClientConfig>>()
         );
 
         error::internal_server_error()
