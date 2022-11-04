@@ -16,11 +16,7 @@ use error::CertConfigError;
 use log::LevelFilter;
 use rustls::{Certificate, ClientConfig, PrivateKey, RootCertStore, ServerConfig};
 use rustls_pemfile::Item::*;
-use sqlx::{
-    mysql::{MySqlConnectOptions, MySqlSslMode},
-    pool::PoolOptions,
-    MySqlPool,
-};
+use sqlx::{mysql::MySqlConnectOptions, pool::PoolOptions, MySqlPool};
 
 use suppaftp::async_native_tls::Certificate as FtpCertificate;
 
@@ -98,9 +94,7 @@ fn create_pool(vars: &BackendVars) -> MySqlPool {
         .port(vars.data_historian_port)
         .username(&vars.data_historian_user)
         .password(&vars.data_historian_pass)
-        .database(&vars.data_historian_db_name)
-        .ssl_mode(MySqlSslMode::VerifyCa)
-        .ssl_ca(&vars.root_certificate_path);
+        .database(&vars.data_historian_db_name);
 
     PoolOptions::new()
         .max_connections(50)

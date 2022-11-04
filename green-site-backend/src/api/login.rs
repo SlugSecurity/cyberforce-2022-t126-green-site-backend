@@ -72,17 +72,21 @@ async fn check_credentials(
 #[post("")]
 async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
     if !(MIN_USERNAME_LEN..MAX_USERNAME_LEN).contains(&user_login.username.len()) {
-        return HttpResponse::BadRequest().json(ErrorResponse(format!(
-            "Username must be between {MIN_USERNAME_LEN} and {MAX_USERNAME_LEN} characters."
-        )));
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            error: format!(
+                "Username must be between {MIN_USERNAME_LEN} and {MAX_USERNAME_LEN} characters."
+            ),
+        });
     } else if !(MIN_PASSWORD_LEN..MAX_PASSWORD_LEN).contains(&user_login.password.len()) {
-        return HttpResponse::BadRequest().json(ErrorResponse(format!(
-            "Password must be between {MIN_PASSWORD_LEN} and {MAX_PASSWORD_LEN} characters."
-        )));
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            error: format!(
+                "Password must be between {MIN_PASSWORD_LEN} and {MAX_PASSWORD_LEN} characters."
+            ),
+        });
     } else if !user_login.username.bytes().all(|b| b.is_ascii_lowercase()) {
-        return HttpResponse::BadRequest().json(ErrorResponse(format!(
-            "Username must be all lowercase ASCII charcters."
-        )));
+        return HttpResponse::BadRequest().json(ErrorResponse {
+            error: format!("Username must be all lowercase ASCII charcters."),
+        });
     }
 
     if let (Some(vars), Some(cfg)) = (
@@ -103,7 +107,9 @@ async fn login(req: HttpRequest, user_login: Json<UserLogin>) -> HttpResponse {
                     user_login.0.password,
                 );
 
-                HttpResponse::BadRequest().json(ErrorResponse("Bad credentials.".to_string()))
+                HttpResponse::BadRequest().json(ErrorResponse {
+                    error: "Bad credentials.".to_string(),
+                })
             }
             Err(err) => {
                 error!("Encountered LDAP error: {err}. Sending 500 response code...");
