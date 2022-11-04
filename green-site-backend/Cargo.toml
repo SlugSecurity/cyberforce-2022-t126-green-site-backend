@@ -13,15 +13,14 @@ actix-web = { version = "4", features = ["rustls"] }
 green-site-backend-macros = { version = "0.1", path = "../green-site-backend-macros" }
 serde = { version = "1", features = ["derive"] }
 mime = "0.3"
-ldap3 = "0.10"
+ldap3 = { version = "0.10", default-features = false, features = ["tls-rustls"] }
 env_logger = "0.9"
 log = "0.4"
+webpki = "0.22"
+sqlx = { version = "0.6", features = [ "runtime-tokio-rustls", "mysql" ]}
 
 
 #TODO: 
 # use lettre for SMTP/S
 # use imap for IMAP/S
 # use suppaftp for FTP/S
-# use sqlx crate for MySQL over TLS (if possible)
-# use ldap3 crate for LDAP/S
-# login token after LDAP?
