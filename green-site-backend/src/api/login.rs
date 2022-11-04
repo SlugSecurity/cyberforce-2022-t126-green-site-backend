@@ -46,7 +46,8 @@ async fn check_credentials(
         .bind(user_login.username.as_str())
         .fetch_optional(&mut conn)
         .await?
-        .and_then(|pwd| pwd.try_get(0).ok());
+        .and_then(|pwd| pwd.try_get(0).ok())
+        .filter(|pwd| pwd == &user_login.password);
     let (is_valid, used_admin_username) = (
         pwd.is_some(),
         user_login.username == vars.admin_account_username,
