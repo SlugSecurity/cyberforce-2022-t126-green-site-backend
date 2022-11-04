@@ -21,6 +21,7 @@ use green_site_backend_macros::env_vars;
 #[env_var("DATA_SUBMISSION_RATE_LIMIT", usize)]
 #[env_var("DEFAULT_RATE_LIMIT", usize)]
 #[env_var("ADMIN_ACCOUNT_USERNAME", String)]
+#[env_var("ADMIN_TOKEN", String)]
 #[env_var("SSL_CERTIFICATE_PEM_PATH", String)]
 #[env_var("SSL_PRIVATE_KEY_PEM_PATH", String)]
 #[env_var("ROOT_CERTIFICATE_PATH", String)]

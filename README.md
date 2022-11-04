@@ -24,6 +24,7 @@ Contains all of our endpoints for our green team website, which will be document
 - DATA_SUBMISSION_RATE_LIMIT - The number of requests allowed per second for login and contact form submissions and file uploads.
 - DEFAULT_RATE_LIMIT - The number of requests allowed per second for all other applicable endpoints that don't have a custom rate limit.
 - ADMIN_ACCOUNT_USERNAME - The username of the admin.
+- ADMIN_TOKEN - A string of characters to use as the token to send to admins.
 - SSL_CERTIFICATE_PEM_PATH - Path of SSL certificate PEM
 - SSL_PRIVATE_KEY_PEM_PATH - Path of private key PEM
 - ROOT_CERTIFICATE_PATH - Path of root certificate
@@ -62,8 +63,7 @@ UserLogin {
 ```
 ```
 Authentication {
-    is_admin: boolean,
-    token: number (128 bits unsigned), don't store in JS number type)
+    token: string? (only sent if the user is an admin)
 }
 ```
 ```
@@ -121,3 +121,4 @@ Each endpoint's rate limits will be documented. The rate limits shouldn't be hit
 - [ ] Ensure garbage inputs on FTP connection doesn't crash/hang.
 - [ ] Ensure garbage inputs on MySQL connection doesn't crash/hang.
 - [ ] Ensure garbage inputs from frontend connection doesn't crash/hang.
+- [ ] Log in as all users to pregenerate tokens.
