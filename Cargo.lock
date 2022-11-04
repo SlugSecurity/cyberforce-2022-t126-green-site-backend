@@ -993,12 +993,16 @@ name = "green-site-backend"
 version = "0.1.0"
 dependencies = [
  "actix-web",
+ "async-std",
+ "bytes",
  "env_logger",
+ "futures",
  "green-site-backend-macros",
  "ldap3",
  "log",
  "mime",
  "native-tls",
+ "rand",
  "rustls",
  "rustls-pemfile",
  "serde",

@@ -20,6 +20,10 @@ suppaftp = { version = "4", features = ["async-native-tls-vendored"] }
 rustls = "0.20"
 rustls-pemfile = "1"
 native-tls = "0.2"
+rand = "0.8"
+futures = "0.3"
+async-std = "1"
+bytes = "1"
 
 #TODO: 
 # use lettre for SMTP/S
