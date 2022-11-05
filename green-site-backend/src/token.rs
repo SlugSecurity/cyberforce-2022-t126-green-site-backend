@@ -32,7 +32,7 @@ macro_rules! verify_admin_token {
         use actix_web::HttpResponse;
         use $crate::token::has_admin_token;
 
-        if !has_admin_token(&$req, $vars) {
+        if !has_admin_token(&$req, &$vars) {
             return HttpResponse::Unauthorized().finish();
         }
     };

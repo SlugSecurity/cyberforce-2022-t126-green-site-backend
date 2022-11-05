@@ -21,6 +21,4 @@ rand = "0.8"
 bytes = "1"
 lettre = { version = "0.10", features = ["tokio1-native-tls", "serde"] }
 futures = "0.3"
-
-#TODO: 
-# use imap for IMAP/S
+imap = "2"
