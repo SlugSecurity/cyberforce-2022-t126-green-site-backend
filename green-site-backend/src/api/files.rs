@@ -41,6 +41,7 @@ fn get_tls_connector(cert: &Certificate) -> FtpTlsConnector {
         .min_protocol_version(Some(Protocol::Tlsv12))
         .add_root_certificate(cert.clone())
         .use_sni(false)
+        .danger_accept_invalid_hostnames(true)
         .into()
 }
 
