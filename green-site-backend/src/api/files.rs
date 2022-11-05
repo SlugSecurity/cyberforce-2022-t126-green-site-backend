@@ -1,17 +1,17 @@
+use std::{error::Error, fmt::Display};
+
+use actix_multipart::{Multipart, MultipartError};
 use actix_web::{
     get, post,
     web::{Path, ServiceConfig},
-    HttpMessage, HttpRequest, HttpResponse, Responder,
+    HttpRequest, HttpResponse, Responder,
 };
 
 use async_std::io::ReadExt;
-use bytes::Bytes;
-use futures::{
-    io::AsyncBufReadExt,
-    stream::{self, once},
-    AsyncRead, Stream, StreamExt,
-};
+
+use futures::{AsyncRead, StreamExt};
 use log::error;
+use rand::Rng;
 use serde::Serialize;
 use suppaftp::{
     async_native_tls::{Certificate, Protocol, TlsConnector},
@@ -114,21 +114,97 @@ async fn get_files(req: HttpRequest) -> impl Responder {
     }
 }
 
-#[post("")]
-async fn upload_file(req: HttpRequest) -> impl Responder {
-    let target_type = mime::MULTIPART_FORM_DATA.essence_str();
+#[derive(Debug)]
+enum UploadError {
+    UpFtpError(FtpError),
+    UpMultipartError(MultipartError),
+    NoData,
+    BadFileName,
+}
 
-    if req.content_type() != target_type {
-        return HttpResponse::BadRequest().json(ErrorResponse {
-            error: format!("Content type must be {target_type}."),
-        });
+impl Display for UploadError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            UploadError::UpFtpError(err) => write!(f, "{err}"),
+            UploadError::UpMultipartError(err) => write!(f, "{err}"),
+            UploadError::NoData => write!(f, "No data in multipart"),
+            UploadError::BadFileName => write!(f, "Bad file name multipart"),
+        }
+    }
+}
+
+impl Error for UploadError {}
+
+impl From<FtpError> for UploadError {
+    fn from(value: FtpError) -> Self {
+        UploadError::UpFtpError(value)
+    }
+}
+
+impl From<MultipartError> for UploadError {
+    fn from(value: MultipartError) -> Self {
+        UploadError::UpMultipartError(value)
+    }
+}
+
+#[post("")]
+async fn upload_file(req: HttpRequest, multi_part: Multipart) -> impl Responder {
+    use UploadError::*;
+
+    async fn ftp_upload(
+        vars: &BackendVars,
+        cert: &Certificate,
+        mut file: Multipart,
+    ) -> Result<(), UploadError> {
+        let mut field = file.next().await.ok_or(NoData)??;
+        let mut bytes_vec = Vec::new();
+
+        loop {
+            if let Some(bytes_res) = field.next().await {
+                bytes_vec.extend(bytes_res?);
+            } else {
+                break;
+            }
+        }
+
+        if bytes_vec.is_empty() {
+            return Err(NoData);
+        }
+
+        let mut conn = secure_ftp_login(vars, cert).await?;
+        let rand_id = rand::thread_rng().gen::<u128>();
+        let file_name = field
+            .content_disposition()
+            .get_filename()
+            .ok_or(UploadError::BadFileName)?;
+
+        conn.put_file(format!("{rand_id}-{file_name}"), &mut &bytes_vec[..])
+            .await?;
+
+        todo!()
     }
 
     let (var, cert) = verify_var_cert!(req);
 
-    // parse the muultipart form data
+    match ftp_upload(var, cert, multi_part).await {
+        Ok(()) => HttpResponse::Ok().finish(),
+        Err(UpFtpError(FtpError::UnexpectedResponse(Response {
+            status: Status::BadFilename,
+            ..
+        }))) => HttpResponse::BadRequest().json(ErrorResponse {
+            error: "Bad file name".to_string(),
+        }),
+        Err(UpMultipartError(_) | NoData | BadFileName) => {
+            HttpResponse::BadRequest().json(ErrorResponse {
+                error: "Malformed multipart file".to_string(),
+            })
+        }
+        Err(UpFtpError(err)) => {
+            error!("Encountered FTP error while uploading file: {err}");
 
-    HttpResponse::Ok().body("")
+            internal_server_error()
+        }
+    }
 }
 
 #[get("/{file_id}")]

@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 thiserror = "1"
 actix-web = { version = "4", features = ["rustls"] }
+actix-multipart = "0.4"
 green-site-backend-macros = { version = "0.1", path = "../green-site-backend-macros" }
 serde = { version = "1", features = ["derive"] }
 mime = "0.3"

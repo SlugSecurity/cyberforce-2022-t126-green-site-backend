@@ -29,11 +29,12 @@ pub(crate) fn has_admin_token(req: &HttpRequest, env_var: &BackendVars) -> bool 
 #[macro_export]
 macro_rules! verify_admin_token {
     ($req:ident, $vars:ident) => {
+        use actix_web::HttpResponse;
         use $crate::error::internal_server_error;
         use $crate::token::has_admin_token;
 
         if !has_admin_token(&$req, $vars) {
-            return internal_server_error();
+            return HttpResponse::Unauthorized().finish();
         }
     };
 }
