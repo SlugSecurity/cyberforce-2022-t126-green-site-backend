@@ -47,7 +47,7 @@ fn get_tls_connector(cert: &Certificate) -> FtpTlsConnector {
 async fn secure_ftp_login(vars: &BackendVars, tls_cert: &Certificate) -> FtpResult<FtpStream> {
     let mut ftp_stream = FtpStream::connect((vars.ftps_server_ip.as_str(), vars.ftps_server_port))
         .await?
-        .into_secure(get_tls_connector(tls_cert), "domain")
+        .into_secure(get_tls_connector(tls_cert), &vars.ftps_server_ip)
         .await?;
 
     ftp_stream
