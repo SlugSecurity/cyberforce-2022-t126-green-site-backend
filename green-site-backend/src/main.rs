@@ -87,7 +87,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .app_data(connector.clone())
             .service(web::scope("/api").configure(api::endpoint_config))
     })
-    .bind(format!("0.0.0.0:{port}"))?
+    .bind(format!("127.0.0.1:{port}"))?
     .run()
     .await?;
 
