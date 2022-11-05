@@ -39,6 +39,7 @@ macro_rules! verify_var_cert {
 fn get_tls_connector(cert: &Certificate) -> FtpTlsConnector {
     TlsConnector::new()
         .min_protocol_version(Some(Protocol::Tlsv12))
+        .max_protocol_version(Some(Protocol::Tlsv12))
         .add_root_certificate(cert.clone())
         .use_sni(false)
         .danger_accept_invalid_hostnames(true)

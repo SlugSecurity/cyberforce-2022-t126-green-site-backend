@@ -63,6 +63,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let mysql_pool = create_pool(&backend_vars);
     let connector = TlsConnector::builder()
         .min_protocol_version(Some(Protocol::Tlsv12))
+        .max_protocol_version(Some(Protocol::Tlsv12))
         .add_root_certificate(native_cert.clone())
         .danger_accept_invalid_hostnames(true)
         .use_sni(false)
