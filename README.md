@@ -43,14 +43,14 @@ Any 40x and 50x response codes returned will also return an object containing on
   - Response code 400 if UserLogin is malformed, character limits are bad, or username isn't all lowercase ASCII characters.
   - Response code 401 if credentials are invalid.
 - /api/solar - GET request endpoint to retrieve solar panel info. Responds with a ``[SolarPanelInfo]`` object.
-- /api/files - Privileged GET request endpoint to retrieve all file metadata from the FTP server.
+- /api/files - Privileged GET request endpoint to retrieve all file metadata from the FTP server. Returns [File].
   - Response code 401 if authorization token is invalid.
 - /api/files - POST request endpoint to upload a file to the FTP server. This should be a ``multipart/form-data`` where the content disposition header has ``form-data`` as the first directive followed by the ``filename`` directive that is between 1-72 characters.
   - Response code 400 if content type isn't multipart/form-data with valid form data, filename directive isn't provided, or file name isn't set to a valid file name between 1 and 72 characters.
 - /api/files/**ID** - Privileged GET request endpoint to download a file from the FTP server by ID. Returns the file data in the response body with the content type set to 'application/octet-stream' and content disposition set to ``attachment; filename="<FILE_NAME>"``.
   - Response code 400 if file with provided ID doesn't exist.
   - Response code 401 if authorization token is invalid.
-- /api/emails - Privileged GET request endpoint to get all stored emails. Returns an ``Email`` object on success.
+- /api/emails - Privileged GET request endpoint to get all stored emails. Returns ``[Email]`` on success.
   - Response code 401 if authorization token is invalid.
 - /api/emails - POST request endpoint to send an email. The request body should be an ``Email`` object.
   - Response code 400 if Email is malformed or character limits on ``subject`` or ``from`` field are bad (413 response code if overall payload limit is reached).
