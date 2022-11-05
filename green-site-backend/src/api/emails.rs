@@ -25,7 +25,6 @@ struct Email {
     subject: String,
     from: Mailbox,
     body: String,
-    // use to but not derserialized, we intiialize it
 }
 
 impl Email {
