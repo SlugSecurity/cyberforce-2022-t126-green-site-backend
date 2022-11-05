@@ -11,8 +11,8 @@ mod login;
 mod solar;
 
 pub(crate) fn endpoint_config(cfg: &mut ServiceConfig) {
-    cfg.service(web::scope("/files").configure(file_endpoint_config))
-        .service(web::scope("/emails").configure(email_endpoint_config))
+    cfg.service(web::scope("/emails").configure(email_endpoint_config))
+        // .service(web::scope("/files").configure(file_endpoint_config))
         .service(web::scope("/login").configure(login_endpoint_config))
         .service(web::scope("/solar").configure(solar_endpoint_config));
 }
