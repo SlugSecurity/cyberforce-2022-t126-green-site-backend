@@ -63,10 +63,19 @@ async fn get_emails(req: HttpRequest) -> impl Responder {
             connector,
         )?;
 
-        conn.login(vars.email_user.as_str(), vars.email_pass.as_str())
+        let mut session = conn
+            .login(vars.email_user.as_str(), vars.email_pass.as_str())
             .map_err(|(err, _)| err)?;
 
-        todo!()
+        session.select("INBOX")?;
+
+        let res = session.fetch("0", "(HEADER.FIELDS body[text]")?;
+
+        for re in res.iter() {
+            println!("{re:?}");
+        }
+
+        Ok(Vec::new())
     }
 
     let (vars, connector): (&BackendVars, &TlsConnector) = verify_two_vars!(req);

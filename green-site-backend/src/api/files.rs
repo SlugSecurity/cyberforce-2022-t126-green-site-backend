@@ -179,7 +179,7 @@ async fn upload_file(req: HttpRequest, multi_part: Multipart) -> impl Responder 
         conn.put_file(format!("{rand_id}-{file_name}"), &mut &bytes_vec[..])
             .await?;
 
-        todo!()
+        Ok(())
     }
 
     let (var, cert) = verify_var_cert!(req);
