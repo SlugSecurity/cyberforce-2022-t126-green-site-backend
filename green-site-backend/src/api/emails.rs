@@ -20,7 +20,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{env_vars::BackendVars, error::internal_server_error, verify_admin_token};
 
-#[derive(Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize)]
 struct Email {
     subject: String,
     from_name: String,
@@ -33,10 +33,14 @@ impl Email {
         Message::builder()
             .from(
                 Mailbox::try_from((self.from_name, self.from_email))
-                    .map_err(|_| lettre::error::Error::MissingTo)?,
+                    .map_err(|_| lettre::error::Error::MissingFrom)?,
             )
-            .to(Mailbox::try_from(("Web", vars.email_user.clone()))
-                .map_err(|_| lettre::error::Error::MissingTo)?)
+            .to(
+                Mailbox::try_from(("Web", vars.email_user.clone())).map_err(|_| {
+                    println!("fsfje");
+                    lettre::error::Error::MissingTo
+                })?,
+            )
             .subject(self.subject)
             .body(self.body)
     }
@@ -55,6 +59,38 @@ macro_rules! verify_two_vars {
     };
 }
 
+fn parse_headers(headers: String) -> Email {
+    let mut subject = None;
+    let mut name_email = None;
+
+    for header in headers.lines() {
+        if header.starts_with("SUBJECT: ") && header.len() > 9 {
+            subject = Some(header[9..].to_string());
+        } else if header.starts_with("FROM: ") && header.len() > 6 {
+            name_email = header.rfind(' ').map(|s| header[6..].split_at(s - 6));
+        }
+    }
+
+    let (name, email) = match name_email {
+        Some((name, email)) => (name, email),
+        _ => {
+            return Email {
+                subject: subject.unwrap_or_else(String::new),
+                from_name: name_email.unwrap_or(("", "")).0.to_string(),
+                from_email: name_email.unwrap_or(("", "")).1.trim_start().to_string(),
+                body: String::new(),
+            }
+        }
+    };
+
+    Email {
+        subject: subject.unwrap_or_else(String::new),
+        from_name: name.to_string(),
+        from_email: email.trim_start().to_string(),
+        body: String::new(),
+    }
+}
+
 #[get("")]
 async fn get_emails(req: HttpRequest) -> impl Responder {
     fn imap_emails(
@@ -70,20 +106,28 @@ async fn get_emails(req: HttpRequest) -> impl Responder {
         let mut session = conn
             .login(vars.email_user.as_str(), vars.email_pass.as_str())
             .map_err(|(err, _)| err)?;
+        let inbox = session.select("INBOX")?;
+        let mail_count = inbox.exists;
 
-        session.select("INBOX")?;
+        let mut emails = Vec::new();
 
-        let res = session.fetch(
-            "0",
-            "(body[HEADER.FIELDS (FROM)] BODY[HEADER.FIELDS (SUBJECT)] body[text]",
-        )?;
+        for re in 1..=mail_count {
+            let data = session.fetch(
+                re.to_string(),
+                "(body[HEADER.FIELDS (SUBJECT FROM)] body[text])",
+            )?;
 
-        for re in res.iter() {
-            println!("{:?}", re.header());
-            println!("{re:?}");
+            for query in data.iter() {
+                if let (Some(header), Some(text)) = (query.header(), query.text()) {
+                    let mut mail = parse_headers(String::from_utf8_lossy(header).into_owned());
+                    mail.body = String::from_utf8_lossy(text).trim_end().to_string();
+
+                    emails.push(mail);
+                }
+            }
         }
 
-        Ok(Vec::new())
+        Ok(emails)
     }
 
     let (vars, connector): (&BackendVars, &TlsConnector) = verify_two_vars!(req);
@@ -117,6 +161,7 @@ async fn upload_email(req: HttpRequest, email: Json<Email>) -> impl Responder {
     ) -> Result<(), Box<dyn Error>> {
         let tls_params = TlsParameters::builder(vars.email_server_ip.clone())
             .add_root_certificate(cert.clone())
+            .dangerous_accept_invalid_hostnames(true)
             .build_native()?;
         let transport =
             AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(vars.email_server_ip.clone())
