@@ -23,7 +23,7 @@ rand = "0.8"
 futures = "0.3"
 async-std = "1"
 bytes = "1"
+lettre = { version = "0.10", features = ["tokio1-native-tls", "serde"] }
 
 #TODO: 
-# use lettre for SMTP/S
 # use imap for IMAP/S

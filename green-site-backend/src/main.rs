@@ -2,11 +2,12 @@ use std::{error::Error, fs::File, io::Read, time::Duration};
 
 use actix_web::{
     middleware::{self, Logger, TrailingSlash},
-    web, App, HttpServer,
+    web, App, HttpRequest, HttpServer,
 };
 use env_logger::Builder;
 use env_vars::BackendVars;
 use error::CertConfigError;
+use lettre::transport::smtp::client::Certificate as SmtpCertificate;
 use log::LevelFilter;
 use native_tls::{Protocol, TlsConnector};
 use sqlx::{mysql::MySqlConnectOptions, pool::PoolOptions, MySqlPool};
@@ -17,7 +18,9 @@ mod env_vars;
 mod error;
 mod token;
 
-fn get_trusted_roots(vars: &BackendVars) -> Result<FtpCertificate, CertConfigError> {
+fn get_trusted_roots(
+    vars: &BackendVars,
+) -> Result<(FtpCertificate, SmtpCertificate), CertConfigError> {
     use CertConfigError::*;
 
     let root_cert_path = vars.root_certificate_path.as_str();
@@ -30,7 +33,10 @@ fn get_trusted_roots(vars: &BackendVars) -> Result<FtpCertificate, CertConfigErr
         .read_to_end(&mut root_cert_bytes)
         .map_err(|e| ReadPemIoError(root_cert_path.to_string(), e))?;
 
-    Ok(FtpCertificate::from_pem(&root_cert_bytes)?)
+    Ok((
+        FtpCertificate::from_pem(&root_cert_bytes)?,
+        SmtpCertificate::from_pem(&root_cert_bytes)?,
+    ))
 }
 
 fn create_pool(vars: &BackendVars) -> MySqlPool {
@@ -53,7 +59,7 @@ fn create_pool(vars: &BackendVars) -> MySqlPool {
 async fn main() -> Result<(), Box<dyn Error>> {
     let backend_vars = BackendVars::new()?;
     let port = backend_vars.web_server_port;
-    let native_cert = get_trusted_roots(&backend_vars)?;
+    let (native_cert, smtp_cert) = get_trusted_roots(&backend_vars)?;
     let mysql_pool = create_pool(&backend_vars);
     let connector = TlsConnector::builder()
         .min_protocol_version(Some(Protocol::Tlsv12))
@@ -74,6 +80,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
             .wrap(middleware::NormalizePath::new(TrailingSlash::Trim))
             .app_data(backend_vars.clone())
             .app_data(mysql_pool.clone())
+            .app_data(smtp_cert.clone())
             .app_data(native_cert.clone())
             .app_data(connector.clone())
             .service(web::scope("/api").configure(api::endpoint_config))

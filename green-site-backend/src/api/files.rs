@@ -25,6 +25,19 @@ use crate::{
     verify_admin_token,
 };
 
+fn get_var_and_ftp_cert(req: &HttpRequest) -> Option<(&BackendVars, &Certificate)> {
+    Some((req.app_data()?, req.app_data()?))
+}
+
+macro_rules! verify_var_cert {
+    ($req:ident) => {
+        match get_var_and_ftp_cert(&$req) {
+            Some(pair) => pair,
+            None => return crate::error::internal_server_error(),
+        }
+    };
+}
+
 fn get_tls_connector(cert: &Certificate) -> FtpTlsConnector {
     TlsConnector::new()
         .min_protocol_version(Some(Protocol::Tlsv12))
@@ -44,19 +57,6 @@ async fn secure_ftp_login(vars: &BackendVars, tls_cert: &Certificate) -> FtpResu
         .await?;
 
     Ok(ftp_stream)
-}
-
-fn get_var_and_cert(req: &HttpRequest) -> Option<(&BackendVars, &Certificate)> {
-    Some((req.app_data()?, req.app_data()?))
-}
-
-macro_rules! verify_var_cert {
-    ($req:ident) => {
-        match get_var_and_cert(&$req) {
-            Some(pair) => pair,
-            None => return internal_server_error(),
-        }
-    };
 }
 
 #[derive(Serialize)]
