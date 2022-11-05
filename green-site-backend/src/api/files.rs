@@ -7,9 +7,7 @@ use actix_web::{
     HttpRequest, HttpResponse, Responder,
 };
 
-use async_std::io::ReadExt;
-
-use futures::{AsyncRead, StreamExt};
+use futures::{AsyncRead, AsyncReadExt, StreamExt};
 use log::error;
 use rand::Rng;
 use serde::Serialize;
@@ -245,7 +243,11 @@ async fn get_file_by_id(req: HttpRequest, path: Path<u128>) -> impl Responder {
     match download_file(var, cert, format!("{}-{}", found_file.id, found_file.name)).await {
         Ok((mut data, mut stream)) => {
             let mut data_vec = Vec::new();
-            data.read_to_end(&mut data_vec);
+            if let Err(err) = data.read_to_end(&mut data_vec).await {
+                error!("Encountered IO error downloading file: {err}");
+
+                return internal_server_error();
+            }
 
             if let Err(err) = stream.finalize_retr_stream(data).await {
                 error!("We couldn't finalize the FTP stream: {err}");

@@ -1040,12 +1040,10 @@ version = "0.1.0"
 dependencies = [
  "actix-multipart",
  "actix-web",
- "async-std",
  "bytes",
  "env_logger",
  "futures",
  "green-site-backend-macros",
- "ldap3",
  "lettre",
  "log",
  "mime",
@@ -1055,7 +1053,6 @@ dependencies = [
  "sqlx",
  "suppaftp",
  "thiserror",
- "webpki",
 ]
 
 [[package]]
@@ -1326,41 +1323,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "lber"
-version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8a99b520993b21a6faab32643cf4726573dc18ca4cf2d48cbeb24d248c86c930"
-dependencies = [
- "byteorder",
- "bytes",
- "nom 2.2.1",
-]
-
-[[package]]
-name = "ldap3"
-version = "0.10.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ef35dc747152dd47bdc6aaeb35a232f84cbc8d84ae4cb9673aea810a6570ab8f"
-dependencies = [
- "async-trait",
- "bytes",
- "futures",
- "futures-util",
- "lazy_static",
- "lber",
- "log",
- "native-tls",
- "nom 2.2.1",
- "percent-encoding",
- "thiserror",
- "tokio",
- "tokio-native-tls",
- "tokio-stream",
- "tokio-util",
- "url",
-]
-
-[[package]]
 name = "lettre"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1378,7 +1340,7 @@ dependencies = [
  "idna 0.2.3",
  "mime",
  "native-tls",
- "nom 7.1.1",
+ "nom",
  "once_cell",
  "quoted_printable",
  "serde",
@@ -1525,12 +1487,6 @@ dependencies = [
  "security-framework-sys",
  "tempfile",
 ]
-
-[[package]]
-name = "nom"
-version = "2.2.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf51a729ecf40266a2368ad335a5fdde43471f545a967109cd62146ecf8b66ff"
 
 [[package]]
 name = "nom"
@@ -2154,7 +2110,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f87e292b4291f154971a43c3774364e2cbcaec599d3f5bf6fa9d122885dbc38a"
 dependencies = [
  "itertools",
- "nom 7.1.1",
+ "nom",
  "unicode_categories",
 ]
 
@@ -2404,19 +2360,7 @@ dependencies = [
  "pin-project-lite",
  "signal-hook-registry",
  "socket2",
- "tokio-macros",
  "winapi",
-]
-
-[[package]]
-name = "tokio-macros"
-version = "1.8.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9724f9a975fb987ef7a3cd9be0350edcbe130698af5b8f7a631e23d42d052484"
-dependencies = [
- "proc-macro2",
- "quote",
- "syn",
 ]
 
 [[package]]

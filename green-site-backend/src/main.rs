@@ -2,7 +2,7 @@ use std::{error::Error, fs::File, io::Read, time::Duration};
 
 use actix_web::{
     middleware::{self, Logger, TrailingSlash},
-    web, App, HttpRequest, HttpServer,
+    web, App, HttpServer,
 };
 use env_logger::Builder;
 use env_vars::BackendVars;

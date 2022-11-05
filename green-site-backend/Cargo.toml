@@ -12,18 +12,15 @@ actix-multipart = "0.4"
 green-site-backend-macros = { version = "0.1", path = "../green-site-backend-macros" }
 serde = { version = "1", features = ["derive"] }
 mime = "0.3"
-ldap3 = { version = "0.10" }
 env_logger = "0.9"
 log = "0.4"
-webpki = "0.22"
 sqlx = { version = "0.6", features = [ "runtime-tokio-native-tls", "mysql", "sqlite" ] }
 suppaftp = { version = "4", features = ["async-native-tls-vendored"] }
 native-tls = "0.2"
 rand = "0.8"
-futures = "0.3"
-async-std = "1"
 bytes = "1"
 lettre = { version = "0.10", features = ["tokio1-native-tls", "serde"] }
+futures = "0.3"
 
 #TODO: 
 # use imap for IMAP/S
