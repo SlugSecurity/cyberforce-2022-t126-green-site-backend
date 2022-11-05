@@ -85,7 +85,8 @@ File {
 ```
 Email {
     subject: string (1 char min, 100 char max)
-    from: string (1 char min, 100 char max)
+    from_name: string (1 char min, 100 char max)
+    from_email: string(1 char min, 100 char max)
     body: string
 }
 ```

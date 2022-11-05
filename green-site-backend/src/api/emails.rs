@@ -23,14 +23,18 @@ use crate::{env_vars::BackendVars, error::internal_server_error, verify_admin_to
 #[derive(Serialize, Deserialize)]
 struct Email {
     subject: String,
-    from: Mailbox,
+    from_name: String,
+    from_email: String,
     body: String,
 }
 
 impl Email {
     fn to_message(self, vars: &BackendVars) -> Result<Message, lettre::error::Error> {
         Message::builder()
-            .from(self.from)
+            .from(
+                Mailbox::try_from((self.from_name, self.from_email))
+                    .map_err(|_| lettre::error::Error::MissingTo)?,
+            )
             .to(Mailbox::try_from(("Web", vars.email_user.clone()))
                 .map_err(|_| lettre::error::Error::MissingTo)?)
             .subject(self.subject)
@@ -69,9 +73,13 @@ async fn get_emails(req: HttpRequest) -> impl Responder {
 
         session.select("INBOX")?;
 
-        let res = session.fetch("0", "(HEADER.FIELDS body[text]")?;
+        let res = session.fetch(
+            "0",
+            "(body[HEADER.FIELDS (FROM)] BODY[HEADER.FIELDS (SUBJECT)] body[text]",
+        )?;
 
         for re in res.iter() {
+            println!("{:?}", re.header());
             println!("{re:?}");
         }
 
