@@ -1,7 +1,13 @@
-# green-site-backend
+# Green Site Backend
 
-## Green Team Website Backend
-Contains all of our endpoints for our green team website, which will be documented below.
+This repository contains the Green Team site backend created by UCSC's Cyber Slugs (Team 126) for the Department of Energy's 2022 CyberForce Competition.
+
+Team Members: Jeffrey Zhang, Brian Mak, Steven Mak, Jackson Kohls, Nancy Lau
+
+Note: This does not represent our best work as we only had a very limited amount of time to prepare the website.
+
+## Description
+Contains all of the endpoints for our Green Team website, which are documented below.
 
 ## Used Environment variables
 - SQLITE_FILE_NAME - Name of SQLite DB
